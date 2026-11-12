@@ -28,22 +28,28 @@ OctoFit Tracker is a three-tier application for a school fitness program. The st
 
 ## Implementation decisions
 
-Record your plan here before editing code.
-
-- Presentation tier decision:
-- Logic tier decision:
-- Data tier decision:
-- Activity tracking approach:
-- Team management approach:
-- Leaderboard approach:
-- Workout suggestions approach:
+- Presentation tier decision: Build the UI as route-driven React pages that read from the shared API client, keep view logic in components, and surface loading, empty, success, and error states with accessible text. The pages for activities, teams, leaderboard, and workout suggestions should render the real API payloads instead of stubbed placeholders.
+- Logic tier decision: Keep route handlers thin and push business behavior into explicit service functions under `octofit-tracker/backend/src`. Express endpoints should validate user input early, normalize IDs, and return deliberate 4xx responses for invalid or missing records instead of allowing Mongoose cast errors to bubble up as 500s.
+- Data tier decision: Model the domain with Mongoose schemas for `User`, `Team`, `Activity`, and `Workout`, with required fields, relationships, and default values enforced in the schema layer. Seed fixtures should use upserts so demo data stays stable and idempotent when the app starts or tests rerun.
+- Activity tracking approach: Store `user`, `team`, `type`, `minutes`, `points`, and `occurredAt` as required fields. `userId` and `teamId` must resolve to real documents; invalid IDs should reject with a 4xx, and computed `points` should be based on the submitted minutes so the record matches the API contract.
+- Team management approach: Teams must include a `name` and `mascot`, and `members` should default to an empty array. Team creation should accept member IDs, persist them as ObjectIds, and expose the list through the API so the UI can render membership cleanly.
+- Leaderboard approach: Aggregate activities by team, sum each team's points, and sort descending so the top team is rank 1. Each leaderboard item includes `teamName`, `totalPoints`, and a 1-based `rank` using the API contract defined in the architecture.
+- Workout suggestions approach: Recommend workouts by matching the logged-in user's recent activity pattern or declared fitness goal to a workout `focus`, including a human-readable `reason`. Unknown users should return a deliberate 4xx, while known users should get the strongest suggestion first for their recent endurance, strength, or mobility trend.
 
 ## Test plan
 
-Record the commands you run and what each failure means.
-
 - Data-tier command: `npm run test:data --prefix octofit-tracker/backend`
+  - Result: fails in 4 validation checks and 1 seed/idempotency check passes.
+  - Meaning: the Mongoose schemas are missing required fields and defaults (`User.name/email/fitnessGoal`, `Team.name/mascot`, `Activity.type/user/team/minutes/points/occurredAt`, `Workout.focus/minutes/difficulty`), so the data contract is not yet enforced.
 - API command: `npm run test:api --prefix octofit-tracker/backend`
+  - Result: fails in 4 API contract checks.
+  - Meaning: the Express routes are not handling invalid input as 4xx responses, the leaderboard is empty because no aggregation logic exists, and workout suggestion routes are not matching user activity to focused recommendations.
 - Frontend command: `npm test --prefix octofit-tracker/frontend`
+  - Result: fails in 15 presentation contract checks.
+  - Meaning: the app still renders the placeholder “Implementation pending” state rather than real route-level data fetches, loading states, empty states, or accessible error alerts.
 - Backend build command: `npm run build --prefix octofit-tracker/backend`
+  - Result: passes (`tsc --noEmit`).
+  - Meaning: the TypeScript backend compiles cleanly once the contract work starts, but the runtime contract tests still reveal the functional gaps.
 - Frontend build command: `npm run build --prefix octofit-tracker/frontend`
+  - Result: passes (`tsc --noEmit && vite build`).
+  - Meaning: the React app compiles and bundles, but the UI behavior is still incomplete because the tests are catching the missing data-driven implementation.
