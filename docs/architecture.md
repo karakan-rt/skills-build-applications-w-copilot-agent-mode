@@ -39,17 +39,17 @@ OctoFit Tracker is a three-tier application for a school fitness program. The st
 ## Test plan
 
 - Data-tier command: `npm run test:data --prefix octofit-tracker/backend`
-  - Result: fails in 4 validation checks and 1 seed/idempotency check passes.
-  - Meaning: the Mongoose schemas are missing required fields and defaults (`User.name/email/fitnessGoal`, `Team.name/mascot`, `Activity.type/user/team/minutes/points/occurredAt`, `Workout.focus/minutes/difficulty`), so the data contract is not yet enforced.
+  - Result: passes all 5 tests.
+  - Meaning: required model fields, defaults, and idempotent seed behavior satisfy the data contract.
 - API command: `npm run test:api --prefix octofit-tracker/backend`
-  - Result: fails in 4 API contract checks.
-  - Meaning: the Express routes are not handling invalid input as 4xx responses, the leaderboard is empty because no aggregation logic exists, and workout suggestion routes are not matching user activity to focused recommendations.
+  - Result: passes all 4 tests.
+  - Meaning: activity and team validation, leaderboard ranking, and activity-informed workout suggestions satisfy the API contract.
 - Frontend command: `npm test --prefix octofit-tracker/frontend`
-  - Result: fails in 15 presentation contract checks.
-  - Meaning: the app still renders the placeholder “Implementation pending” state rather than real route-level data fetches, loading states, empty states, or accessible error alerts.
+  - Result: passes all 15 tests.
+  - Meaning: each capability renders API data and provides loading, empty, and accessible error states.
 - Backend build command: `npm run build --prefix octofit-tracker/backend`
   - Result: passes (`tsc --noEmit`).
-  - Meaning: the TypeScript backend compiles cleanly once the contract work starts, but the runtime contract tests still reveal the functional gaps.
+  - Meaning: the backend TypeScript compiles cleanly.
 - Frontend build command: `npm run build --prefix octofit-tracker/frontend`
   - Result: passes (`tsc --noEmit && vite build`).
-  - Meaning: the React app compiles and bundles, but the UI behavior is still incomplete because the tests are catching the missing data-driven implementation.
+  - Meaning: the frontend type-checks and produces a production bundle.
