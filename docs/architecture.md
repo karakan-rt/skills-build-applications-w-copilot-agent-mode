@@ -53,3 +53,5 @@ OctoFit Tracker is a three-tier application for a school fitness program. The st
 - Frontend build command: `npm run build --prefix octofit-tracker/frontend`
   - Result: passes (`tsc --noEmit && vite build`).
   - Meaning: the frontend type-checks and produces a production bundle.
+
+- Baseline: failing tests captured before implementation.
